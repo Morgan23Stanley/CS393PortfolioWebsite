@@ -1,0 +1,115 @@
+/*
+import { onMounted, onBeforeUnmount, ref } from 'vue';
+import { useQuasar } from 'quasar';
+import { watch, nextTick, computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser } from '../js/pageLogic';
+
+export default {
+  name: 'TerminalPage',
+  setup() {
+    const $q = useQuasar();
+    const router = useRouter();
+    const route = useRoute();
+    const terminalElement = ref(null);
+    const terminalContent = ref(null);
+
+    const browserClass = computed(() => {
+      if ((route.meta.isPage)) {
+        setBrowserState('terminal', 'maximized');
+      }
+      else if (route.meta.isHome && !getBrowserState('terminal') ) {
+        setBrowserState('terminal', 'default');
+      }
+      return getBrowserState('terminal');
+    });
+
+    // Wrap the imported functions to use them in the template
+    const minimize = () => {
+      minimizeBrowser('terminal', $q);
+
+      if (terminalElement.value) {
+        setPrevStates('terminal', terminalElement.value.className);
+        terminalElement.value.className = 'minimized';
+      }
+
+      setScrollPosition('terminal', terminalContent.value?.scrollTop || 0);
+
+      console.log(getBrowserState('terminal'));
+    };
+    const maximize = () => {
+      maximizeBrowser('terminal', $q, route, router, terminalContent);
+    };
+    const close = () => closeBrowser('terminal', $q);
+
+    onMounted(() => {
+      window.scrollTo(0, getScrollPosition('terminal'));
+      
+      const scrollListener = () => setScrollPosition('terminal', window.scrollY);
+      window.addEventListener('scroll', scrollListener);
+
+      if (document.getElementById('browser').value) {
+        document.getElementById('browser').value.className = browserClass.value;
+      }
+      
+      onBeforeUnmount(() => {
+        window.removeEventListener('scroll', scrollListener);
+      });
+    });
+
+    return {
+      minimize,
+      maximize,
+      close,
+      terminalElement,
+      terminalContent,
+      browserClass,
+    };
+  },
+};
+*/
+
+
+
+
+const showHeader = ref(false);
+
+    const extractMiniBrowserIdentifier = () => {
+      const url = new URL(window.location.href);
+      const path = url.hash.substring(1); 
+      const segments = path.split('/');
+      const miniBrowserIdentifier = segments[segments.length - 1];
+      return miniBrowserIdentifier.replace('Browser', '');
+    };
+
+    const updateHeaderVisibility = () => {
+      const identifier = extractMiniBrowserIdentifier();
+      const miniBrowserState = localStorage.getItem(identifier + 'State'); 
+      showHeader.value = miniBrowserState !== 'maximized';
+    };
+
+    const onStorageChange = (event) => {
+      const identifier = extractMiniBrowserIdentifier();
+      if (event.key === identifier + 'State') {
+        updateHeaderVisibility();
+      }
+    };
+
+    const currentPath = window.location.hash; 
+      const segments = currentPath.split('/');
+      const miniBrowserSegment = segments.pop(); 
+      const miniBrowserIdentifier = miniBrowserSegment.replace('Browser', ''); 
+
+      const browserState = getBrowserState(miniBrowserIdentifier); // Assuming this function exists and returns the state
+
+      showHeader.value = browserState !== 'maximized';
+
+      updateHeaderVisibility();
+      
+      onBeforeUnmount(() => {
+        window.removeEventListener('storage', onStorageChange);
+      });
+
+      showHeader() {
+      return this.browserState === 'maximized';
+    }

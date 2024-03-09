@@ -1,0 +1,36 @@
+___
+# Home Page
+This page will be the start of your journey. You can navigate to other pages or you can see everything from here.
+
+## Header (the bar at the very top of the page)
+- Accessibility Button
+-- For the psychos, you can enable light mode but beware that your eyes might burn and cannot be unseen if you enable it. YOU HAVE BEEN WARNED!! Also, you can disable sound if you want peace and quiet.
+- Terminal Button
+-- If you are a true hacker, you will know how to use the terminal. This is a simplified version so don't expect to be actually hacking me from here :) There are basic commands like cd, ls, and pwd. If you want to see all commands just type --help in the prompt. To see the description of the command type man {command} (example: man cd).
+- Language Dropdown
+-- I can't believe you don't know english! Oh well, if you must, change your language preference but who knows if it will actually works :()
+- RSS Feed Button (aka social media)
+-- Follow me???
+- Power Button
+-- Destroy the system or don't destroy the system. That is the question.
+
+## Sidebar (the vertical bar at the very far left side of the page)
+NOTE: Each of these icons will open a mini browser in the home page. You can interact with the page as if you were actually on the pages itself. The mini browser has similar functionality of the browser you are currently using to view this. Figure it out :)
+- Contact Me (email icon)
+-- Have a suggestion, a hate comment, a love note, etc? Send me a message but no guarantee I will respond. Worth a try though.
+- Projects (lightbulb icon)
+-- I may be a lazy person but I still do stuff. You can view all my projects that I have either done or am working on currently.
+- Blog (the icon that has the word blog in it)
+-- If I ever start writing articles, you will find them here. Though they may just be used for my notes not going to lie.
+- About Me (question mark person icon)
+-- Who Am I?
+- Resume (CV icon)
+-- If you a company, please hire me :-)
+- More Apps (the icon at the bottom)
+-- As website continues expanding, there will be more goodies for you to see. Just keep stalking and you may see it!
+
+## Body (Everything that is not the header or the sidebar)
+- PRIVATE FOLDER??!!
+-- What mystery lies within this not suspiciously locked folder? If you can find the flag that unlocks this folder, you will be in for a good surprise. Maybe its money or maybe its a treasure hunt or maybe its nothing at all. Good luck! (hint: there are five different locations where you can find the flag)
+- README.md
+-- Well, if you are reading this, must mean you opened the file duh. Do I really need to explain any further?
