@@ -31,42 +31,107 @@ const getPrevStates = (page) => {
 
 const setBrowserState = (page, state) => {
     pageStates.browserStates[page] = state;
-    localStorage.setItem(page + 'State', state); // Save state to localStorage
 };
 
 const getBrowserState = (page) => {
     return localStorage.getItem(page + 'State') || 'default'; // Retrieve state from localStorage
 };
 
-const maximizeBrowser = (pageName, $q, route, router, content) => {
+const getDraggableStore = (pageName) => {
+    return localStorage.getItem(pageName + 'Draggable');
+}
+
+const saveDraggableStore = (pageName, state) => {
+    localStorage.setItem(pageName + 'Draggable', JSON.stringify(state));
+};
+
+const loadBrowserState = (pageName) => {
+    const state = localStorage.getItem(pageName + 'State') || 'default';
+    setBrowserState(pageName, state);
+};
+
+const getBrowserStateStore = (pageName) => {
+    return localStorage.getItem(pageName + 'State');
+}
+
+const saveBrowserState = (pageName, state) => {
+    localStorage.setItem(pageName + 'State', state);
+};
+
+const loadPrevState = (pageName) => {
+    const state = localStorage.getItem(pageName + 'PrevState') || 'default';
+    setBrowserState(pageName, state);
+    saveBrowserState(pageName, state);
+    localStorage.removeItem(pageName + 'PrevState');
+};
+
+const getPrevStateStore = (pageName) => {
+    localStorage.getItem(pageName + 'PrevState');
+}
+
+const savePrevState = (pageName, state) => {
+    localStorage.setItem(pageName + 'PrevState', state);
+};
+
+const maximizeBrowser = (pageName, $q, content, element) => {
     const currentState = getBrowserState(pageName);
-    let newState;
+    var newState;
+    var isDraggable;
 
     if (currentState === 'maximized') {
+        element.value.style.left = '100px';
+        element.value.style.top = '50px';
         newState = 'reduced';
+        isDraggable = true;
     } else if (currentState === 'reduced') {
         newState = 'default';
+        element.value.style.left = '0';
+        element.value.style.top = '0';
+        isDraggable = false;
     } else {
         newState = 'maximized';
+        isDraggable = false;
     }
 
     setBrowserState(pageName, newState);
-    document.getElementById('browser').className = newState;
+    saveBrowserState(pageName, newState);
+    saveDraggableStore(pageName, isDraggable);
 
-    setScrollPosition(pageName, content.value?.scrollTop || 0);
+    if (element.value && newState === 'reduced') {
+        element.value.className = newState;
+        element.value.classList.add('draggable')
+    }
+    else {
+        element.value.className = newState;
+    }
+
     $q.notify({ type: 'info', message: `${pageName} Browser ${newState}` });
 };
-// Updated functions
+
 const minimizeBrowser = (pageName, $q) => {
-    setBrowserState(pageName, 'minimized');
+    const scrollY = window.scrollY;
+    var newState = 'minimized';
+
+    setScrollPosition(pageName, scrollY);
+    setBrowserState(pageName, newState);
+
+    if (document.getElementById(pageName + 'Browser')) {
+        document.getElementById(pageName + 'Browser').className = newState;
+    }
+
+    var currentStorage = getBrowserState(pageName);
+    savePrevState(pageName, currentStorage);
+    saveBrowserState(pageName, newState);
+    setActiveMiniBrowser('');
+
     $q.notify({ type: 'info', message: `${pageName} Browser minimized` });
 };
+
 const closeBrowser = (pageName, $q) => {
     setBrowserState(pageName, 'closed');
     $q.notify({ type: 'info', message: `${pageName} Browser closed` });
 };
 
-// Function to set the active mini-browser
 const setActiveMiniBrowser = (pageName) => {
     pageStates.activeMiniBrowser = pageName;
 };
@@ -83,4 +148,4 @@ const setScrollPosition = (page, scrollPosition) => {
 const getScrollPosition = (page) => {
     return pageStates.scrollPositions[page] || 0;
 };
-export { setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser };
+export { getDraggableStore, saveDraggableStore, loadPrevState, getPrevStateStore, savePrevState, loadBrowserState, getBrowserStateStore, saveBrowserState, setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser };

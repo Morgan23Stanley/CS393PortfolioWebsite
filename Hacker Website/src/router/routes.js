@@ -1,6 +1,6 @@
 const routes = [
   {
-    path: '/home',
+    path: '/',
     component: () => import('layouts/HomeLayout.vue'), // Root Layout
     children: [
       { path: 'terminalBrowser', component: () => import('pages/Terminal.vue'), name: 'terminalBrowser' },

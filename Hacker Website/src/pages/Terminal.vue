@@ -1,8 +1,8 @@
 <template>
   <q-page class="flex flex-center" style="overflow: auto;">
-    <div id="browser" ref="terminalElement" :class="browserClass">
+    <div id="terminalBrowser" ref="terminalElement" :class="browserClass">
       <!-- Browser Toolbar -->
-      <section id="browser_toolbar">
+      <section id="browser_toolbar" @mousedown="startDrag" @mouseup="stopDrag">
         <div id="bar__buttons">
           <button class="bar__button close" id="browser-close" @click.stop="close">&#10005;</button>
           <button class="bar__button" id="browser-minimize" @click.stop="minimize">&#9472;</button>
@@ -30,7 +30,7 @@ export default Terminal
 
 
 <style scoped>
-#browser.default {
+#terminalBrowser.default {
   overflow: hidden;
   display: block;
   position: absolute;
@@ -42,7 +42,7 @@ export default Terminal
   align-items: center;
 }
 
-#browser.maximized {
+#terminalBrowser.maximized {
   position: fixed; /* Position relative to the viewport */
   top: 0;
   left: 0;
@@ -54,25 +54,24 @@ export default Terminal
   text-align: center;
   justify-content: center;
   align-items: center;
+  z-index: 10;
 }
 
-#browser.reduced {
+#terminalBrowser.reduced {
   display: block;
   position: absolute;
   height: 400px;
   width: 600px;
-  top: 50px;
-  left: 100px;
   margin: 0;
   cursor: grab;
 }
 
-#browser.minimized {
+#terminalBrowser.minimized {
   display: none;
 }
 
-#browser_toolbar:active {
-  cursor: grabbing;
+#terminalBrowser.reduced #terminalBrowser {
+  cursor: grab;
 }
 
 #browser_toolbar {
@@ -132,8 +131,9 @@ export default Terminal
   background: rgba(56, 4, 40);
   opacity: 100%;
   font-family: 'Ubuntu Mono';
-  height: 100%;
+  height: calc(100% - 30px);
   overflow: auto;
+  cursor: auto;
 }
 
 </style>

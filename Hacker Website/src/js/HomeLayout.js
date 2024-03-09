@@ -1,8 +1,8 @@
 import { useQuasar } from 'quasar'
 import { QMarkdown } from '@quasar/quasar-ui-qmarkdown'
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
-import { setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser } from '../js/pageLogic.js';
+import { getDraggableStore, saveDraggableStore, loadPrevState, getPrevStateStore, savePrevState, loadBrowserState, getBrowserStateStore, saveBrowserState, setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser } from '../js/pageLogic.js';
 
 export default {
   setup() {
@@ -113,9 +113,18 @@ export default {
       }
     },
     navigateTo(pageName) {
-      setCurrentPage('home');
+      if (getActiveMiniBrowser()) {
+        minimizeBrowser(getActiveMiniBrowser(), this.$q)
+      }
       setActiveMiniBrowser(pageName);
-      this.$router.push({ path: '/home/' + pageName + 'Browser' });
+      this.$router.push({ path: '/' + pageName + 'Browser' });
+      nextTick(() => {
+        if (getBrowserState(pageName) == 'minimized') {
+          loadPrevState(pageName);
+        }
+        const savedPosition = getScrollPosition(pageName);
+        window.scrollTo(0, savedPosition);
+      });
     },
   },
 

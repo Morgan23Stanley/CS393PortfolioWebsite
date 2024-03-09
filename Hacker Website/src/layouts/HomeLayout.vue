@@ -5,8 +5,8 @@
     <q-header class="bg-grey-8 custom-header">
       <q-toolbar class="custom-toolbar">
         <!-- Accessibility and Terminal Buttons -->
-        <q-btn flat label="Accessibility" @click="openAccessibilityOptions()" class="btn--no-hover" />
-        <q-btn flat label="Terminal" @click="navigateTo('terminal')" class="btn--no-hover" />
+        <q-btn flat label="Accessibility" @click.stop="openAccessibilityOptions()" class="btn--no-hover" />
+        <q-btn flat label="Terminal" @click.stop="navigateTo('terminal')" class="btn--no-hover" />
 
         <!-- Title in the middle -->
         <q-toolbar-title>
@@ -91,7 +91,7 @@
 
         <div class="icon-container">
           <div class="desktop-align">
-            <div class="icon-wrapper" ref="privateIcon" @click.stop="privateSClick" @dblclick="privateDClick"
+            <div class="icon-wrapper" ref="privateIcon" @click.stop="privateSClick" @dblclick.stop="privateDClick"
               :style="{ backgroundColor: privateBackground }">
               <q-icon name="folder" size="5rem" class="folder"></q-icon>
               <q-icon :name="isFolderLocked ? 'lock' : 'lock_open'" size="1.2rem" class="lock-icon"></q-icon>
@@ -149,6 +149,7 @@ export default HomeLayout;
   align-items: center;
   justify-content: center;
   text-align: center;
+  z-index: 5;
 }
 
 .custom-toolbar {
@@ -239,7 +240,6 @@ export default HomeLayout;
   width: 100%;
   height: 100%;
   box-shadow: none;
-  border: red 1px solid;
 }
 
 .icon-container {

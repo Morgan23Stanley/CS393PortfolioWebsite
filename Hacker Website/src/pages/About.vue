@@ -1,8 +1,8 @@
 <template>
   <q-page class="flex flex-center" style="overflow: auto;">
-    <div id="browser" class="default">
+    <div id="aboutBrowser" ref="aboutElement" :class="browserClass">
       <!-- Browser Toolbar -->
-      <section id="browser_toolbar">
+      <section id="browser_toolbar" @mousedown="startDrag" @mouseup="stopDrag">
         <div id="bar__buttons">
           <button class="bar__button close" id="browser-close" @click.stop="close">&#10005;</button>
           <button class="bar__button" id="browser-minimize" @click.stop="minimize">&#9472;</button>
@@ -10,8 +10,13 @@
         </div>
       </section>
       <!-- Browser Content -->
-      <section id="browser_content">
-        <router-view />
+      <section id="browser_content" ref="aboutContent">
+        <h1>About</h1>
+        <h1>About</h1>
+        <h1>About</h1>
+        <h1>About</h1>
+        <h1>About</h1>
+        <h1>About</h1>
       </section>
     </div>
   </q-page>
@@ -25,32 +30,48 @@ export default About
 
 
 <style scoped>
-#browser.default {
+#aboutBrowser.default {
   overflow: hidden;
   display: block;
   position: absolute;
   width: 100%;
   height: 100%;
   box-shadow: none;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
 }
 
-#browser.reduced {
+#aboutBrowser.maximized {
+  position: fixed; /* Position relative to the viewport */
+  top: 0;
+  left: 0;
+  width: 100vw; /* 100% of the viewport width */
+  height: 100vh; /* 100% of the viewport height */
+  overflow: hidden;
+  display: block;
+  box-shadow: none;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+#aboutBrowser.reduced {
   display: block;
   position: absolute;
   height: 400px;
   width: 600px;
-  top: 50px;
-  left: 100px;
   margin: 0;
   cursor: grab;
 }
 
-#browser.minimized {
+#aboutBrowser.minimized {
   display: none;
 }
 
-#browser_toolbar:active {
-  cursor: grabbing;
+#aboutBrowser.reduced #aboutBrowser {
+  cursor: grab;
 }
 
 #browser_toolbar {
@@ -110,8 +131,9 @@ export default About
   background: rgba(56, 4, 40);
   opacity: 100%;
   font-family: 'Ubuntu Mono';
-  height: 100%;
+  height: calc(100% - 30px);
   overflow: auto;
+  cursor: auto;
 }
 
 </style>

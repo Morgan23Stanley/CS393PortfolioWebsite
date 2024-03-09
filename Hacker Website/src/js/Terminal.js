@@ -2,7 +2,7 @@ import { onMounted, onBeforeUnmount, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { watch, nextTick, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser } from '../js/pageLogic';
+import { getDraggableStore, saveDraggableStore, loadPrevState, getPrevStateStore, savePrevState, loadBrowserState, getBrowserStateStore, saveBrowserState, setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser } from '../js/pageLogic';
 
 export default {
   name: 'TerminalPage',
@@ -12,55 +12,92 @@ export default {
     const route = useRoute();
     const terminalElement = ref(null);
     const terminalContent = ref(null);
+    const isDragging = ref(false);
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
 
-    const loadBrowserState = () => {
-      const state = localStorage.getItem('terminalState') || 'default';
-      setBrowserState('terminal', state);
+    const startDrag = (e) => {
+      if (terminalElement.value.classList.contains('draggable')) {
+        // console.log('drag start');
+        e.preventDefault();
+        isDragging.value = true;
+        dragOffsetX = e.clientX - terminalElement.value.getBoundingClientRect().left;
+        dragOffsetY = e.clientY - terminalElement.value.getBoundingClientRect().top;
+      }
     };
 
-    const saveBrowserState = (state) => {
-      localStorage.setItem('terminalState', state);
+    const doDrag = (e) => {
+      if (isDragging.value) {
+        // console.log('isdragging');
+        const container = document.getElementById('desktop');
+
+        let newX = e.clientX - dragOffsetX - container.getBoundingClientRect().left;
+        let newY = e.clientY - dragOffsetY - container.getBoundingClientRect().top + window.scrollY;
+
+        newX = Math.max(0, Math.min(newX, container.offsetWidth - terminalElement.value.offsetWidth));
+        newY = Math.max(0, Math.min(newY, container.offsetHeight - terminalElement.value.offsetHeight));
+
+        terminalElement.value.style.left = `${newX}px`;
+        terminalElement.value.style.top = `${newY}px`;
+      }
+    };
+
+    const stopDrag = () => {
+      // console.log('drag stopped');
+      isDragging.value = false;
     };
 
     const browserClass = computed(() => {
-      loadBrowserState();
+      loadBrowserState('terminal');
       return getBrowserState('terminal');
     });
 
     const maximize = () => {
-      const currentState = getBrowserState('terminal');
-      let newState;
-      if (currentState === 'maximized') {
-        newState = 'reduced';
-      } else if (currentState === 'reduced') {
-        newState = 'default';
-      } else {
-        newState = 'maximized';
-      }
-      setBrowserState('terminal', newState);
-      saveBrowserState(newState);
+      maximizeBrowser('terminal', $q, terminalContent, terminalElement, isDragging);
+    };
 
-      if (terminalElement.value) {
-        terminalElement.value.className = newState;
-      }
+    const minimize = () => {
+      minimizeBrowser('terminal', $q, terminalElement);
     };
 
     onMounted(() => {
+      nextTick(() => {
+        if (getBrowserStateStore('terminal') === 'reduced' && getDraggableStore('terminal') === 'true') {
+          terminalElement.value.classList.add('draggable');
+        }
+      });
+
       window.scrollTo(0, getScrollPosition('terminal'));
-      
+
       const scrollListener = () => setScrollPosition('terminal', window.scrollY);
       window.addEventListener('scroll', scrollListener);
 
+      const terminalBar = document.getElementById('browser_toolbar'); // Ensure you have the correct ID for the draggable area
+      terminalBar.addEventListener('mousedown', startDrag);
+      document.addEventListener('mousemove', doDrag);
+      document.addEventListener('mouseup', stopDrag);
+
       onBeforeUnmount(() => {
         window.removeEventListener('scroll', scrollListener);
+
+        const toolbar = terminalElement.value.querySelector('#browser_toolbar');
+        if (toolbar) {
+          toolbar.removeEventListener('mousedown', startDrag);
+        }
+
+        document.removeEventListener('mousemove', doDrag);
+        document.removeEventListener('mouseup', stopDrag);
       });
     });
 
     return {
       maximize,
+      minimize,
       terminalElement,
       terminalContent,
       browserClass,
+      startDrag,
+      stopDrag,
     };
   },
 };
