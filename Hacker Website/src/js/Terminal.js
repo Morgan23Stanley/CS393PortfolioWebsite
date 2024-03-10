@@ -61,12 +61,8 @@ export default {
     };
 
     onMounted(() => {
-      nextTick(() => {
-        if (getBrowserStateStore('terminal') === 'reduced' && getDraggableStore('terminal') === 'true') {
-          terminalElement.value.classList.add('draggable');
-        }
-      });
-
+      console.log(terminalElement.value.className = getBrowserState('terminal'));
+      terminalElement.value.className = getBrowserState('terminal')
       window.scrollTo(0, getScrollPosition('terminal'));
 
       const scrollListener = () => setScrollPosition('terminal', window.scrollY);
@@ -76,6 +72,14 @@ export default {
       terminalBar.addEventListener('mousedown', startDrag);
       document.addEventListener('mousemove', doDrag);
       document.addEventListener('mouseup', stopDrag);
+
+      nextTick(() => {
+        console.log('terminal next tick');
+        if (getBrowserStateStore('terminal') === 'reduced' && (getDraggableStore('terminal') === 'true' || getDraggableStore('terminal') === '')) {
+          terminalElement.value.classList.add('draggable');
+          saveDraggableStore('terminal', true);
+        }
+      });
 
       onBeforeUnmount(() => {
         window.removeEventListener('scroll', scrollListener);

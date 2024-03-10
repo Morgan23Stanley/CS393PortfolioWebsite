@@ -1,12 +1,14 @@
 import { useQuasar } from 'quasar'
 import { QMarkdown } from '@quasar/quasar-ui-qmarkdown'
 import { ref, onMounted, computed, watch, nextTick } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { getDraggableStore, saveDraggableStore, loadPrevState, getPrevStateStore, savePrevState, loadBrowserState, getBrowserStateStore, saveBrowserState, setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser } from '../js/pageLogic.js';
 
 export default {
   setup() {
     const $q = useQuasar();
+    const route = useRoute();
+    const router = useRouter();
     const password = ref('');
     const passwordRef = ref(null);
     const prompt = ref(false);
@@ -43,6 +45,22 @@ export default {
       password.value = null;
       passwordRef.value.resetValidation();
     };
+    watch(() => route.path, (newPath) => {
+      nextTick(() => {
+        const segments = newPath.split('/');
+        const pageName = segments.pop() || segments.pop();
+
+        const element = document.getElementById(pageName);
+
+        if (element) {
+          element.className = getBrowserState(pageName);
+          const savedPosition = getScrollPosition(pageName);
+          window.scrollTo(0, savedPosition);
+        } else {
+          console.warn(`Element with ID ${pageName} not found after route change to ${newPath}`);
+        }
+      });
+    });
     onMounted(async () => {
       const response = await fetch('src/markdown/markdown.txt'); // Adjust the path as necessary
       markdownContent.value = await response.text();
@@ -113,19 +131,35 @@ export default {
       }
     },
     navigateTo(pageName) {
-      if (getActiveMiniBrowser()) {
-        minimizeBrowser(getActiveMiniBrowser(), this.$q)
-      }
-      setActiveMiniBrowser(pageName);
-      this.$router.push({ path: '/' + pageName + 'Browser' });
-      nextTick(() => {
-        if (getBrowserState(pageName) == 'minimized') {
-          loadPrevState(pageName);
-        }
-        const savedPosition = getScrollPosition(pageName);
-        window.scrollTo(0, savedPosition);
-      });
-    },
-  },
+      this.$router.push({ path: '/' + pageName });
+    
+      const trySetElementClass = (attemptsLeft) => {
+        nextTick(() => {
+          const element = document.getElementById(pageName);
+        
+          if (element) {
+            // Element found, perform your operations
+            if (getBrowserState(pageName) == 'minimized') {
+              loadPrevState(pageName);
+              element.className = getBrowserState(pageName);
+            }
 
+            if (getBrowserState(pageName) == 'reduced') {
+              element.classList.add('draggable');
+            }
+    
+            const savedPosition = getScrollPosition(pageName);
+            window.scrollTo(0, savedPosition);
+          } else if (attemptsLeft > 0) {
+            // Element not found, wait a bit and try again
+            setTimeout(() => trySetElementClass(attemptsLeft - 1), 100); // Retry after 100ms
+          } else {
+            console.warn(`Element with id '${pageName}' not found after retries.`);
+          }
+        });
+      };
+    
+      trySetElementClass(3); // Try up to 3 times
+    },    
+  },
 };

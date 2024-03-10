@@ -115,8 +115,8 @@ const minimizeBrowser = (pageName, $q) => {
     setScrollPosition(pageName, scrollY);
     setBrowserState(pageName, newState);
 
-    if (document.getElementById(pageName + 'Browser')) {
-        document.getElementById(pageName + 'Browser').className = newState;
+    if (document.getElementById(pageName )) {
+        document.getElementById(pageName ).className = newState;
     }
 
     var currentStorage = getBrowserState(pageName);

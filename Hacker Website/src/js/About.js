@@ -60,13 +60,11 @@ export default {
       minimizeBrowser('about', $q, aboutElement);
     };
 
-    onMounted(() => {
-      nextTick(() => {
-        if (getBrowserStateStore('about') === 'reduced' && getDraggableStore('about') === 'true') {
-          aboutElement.value.classList.add('draggable');
-        }
-      });
+    watch 
 
+    onMounted(() => {
+      console.log(aboutElement.value.className = getBrowserState('about'));
+      aboutElement.value.className = getBrowserState('about')
       window.scrollTo(0, getScrollPosition('about'));
 
       const scrollListener = () => setScrollPosition('about', window.scrollY);
@@ -76,6 +74,14 @@ export default {
       aboutBar.addEventListener('mousedown', startDrag);
       document.addEventListener('mousemove', doDrag);
       document.addEventListener('mouseup', stopDrag);
+
+      nextTick(() => {
+        console.log('about next tick');
+        if (getBrowserStateStore('about') === 'reduced' && (getDraggableStore('about') === 'true' || getDraggableStore('about') === '')) {
+          aboutElement.value.classList.add('draggable');
+          saveDraggableStore('about', true);
+        }
+      });
 
       onBeforeUnmount(() => {
         window.removeEventListener('scroll', scrollListener);

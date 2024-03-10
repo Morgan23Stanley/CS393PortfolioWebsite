@@ -1,6 +1,6 @@
 <template>
   <q-page class="flex flex-center" style="overflow: auto;">
-    <div id="terminalBrowser" ref="terminalElement" :class="browserClass">
+    <div id="terminal" ref="terminalElement" :class="browserClass">
       <!-- Browser Toolbar -->
       <section id="browser_toolbar" @mousedown="startDrag" @mouseup="stopDrag">
         <div id="bar__buttons">
@@ -30,7 +30,7 @@ export default Terminal
 
 
 <style scoped>
-#terminalBrowser.default {
+#terminal.default {
   overflow: hidden;
   display: block;
   position: absolute;
@@ -42,7 +42,7 @@ export default Terminal
   align-items: center;
 }
 
-#terminalBrowser.maximized {
+#terminal.maximized {
   position: fixed; /* Position relative to the viewport */
   top: 0;
   left: 0;
@@ -57,7 +57,7 @@ export default Terminal
   z-index: 10;
 }
 
-#terminalBrowser.reduced {
+#terminal.reduced {
   display: block;
   position: absolute;
   height: 400px;
@@ -66,11 +66,11 @@ export default Terminal
   cursor: grab;
 }
 
-#terminalBrowser.minimized {
+#terminal.minimized {
   display: none;
 }
 
-#terminalBrowser.reduced #terminalBrowser {
+#terminal.reduced #browser_toolbar {
   cursor: grab;
 }
 

@@ -1,6 +1,6 @@
 <template>
   <q-page class="flex flex-center" style="overflow: auto;">
-    <div id="aboutBrowser" ref="aboutElement" :class="browserClass">
+    <div id="about" ref="aboutElement" :class="browserClass">
       <!-- Browser Toolbar -->
       <section id="browser_toolbar" @mousedown="startDrag" @mouseup="stopDrag">
         <div id="bar__buttons">
@@ -30,7 +30,7 @@ export default About
 
 
 <style scoped>
-#aboutBrowser.default {
+#about.default {
   overflow: hidden;
   display: block;
   position: absolute;
@@ -42,7 +42,7 @@ export default About
   align-items: center;
 }
 
-#aboutBrowser.maximized {
+#about.maximized {
   position: fixed; /* Position relative to the viewport */
   top: 0;
   left: 0;
@@ -57,7 +57,7 @@ export default About
   z-index: 10;
 }
 
-#aboutBrowser.reduced {
+#about.reduced {
   display: block;
   position: absolute;
   height: 400px;
@@ -66,11 +66,11 @@ export default About
   cursor: grab;
 }
 
-#aboutBrowser.minimized {
+#about.minimized {
   display: none;
 }
 
-#aboutBrowser.reduced #aboutBrowser {
+#about.reduced #browser_toolbar {
   cursor: grab;
 }
 
