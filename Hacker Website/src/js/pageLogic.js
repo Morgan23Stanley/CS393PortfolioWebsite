@@ -1,6 +1,7 @@
 import { reactive } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { nextTick } from 'vue';
+import { Container } from 'postcss';
 
 const pageStates = reactive({
     currentPage: '',
@@ -10,8 +11,17 @@ const pageStates = reactive({
         terminal: 0,
     },
     browserStates: {},
+    browserContents: {},
     prevStates: {},
 });
+
+const setBrowserContents = (pageName, content) => {
+    pageStates.browserContents[pageName] = content;
+}
+
+const getBrowserContents = (pageName) => {
+    return  pageStates.browserContents[pageName];
+}
 
 const setCurrentPage = (pageName) => {
     pageStates.currentPage = pageName;
@@ -63,6 +73,7 @@ const loadPrevState = (pageName) => {
     setBrowserState(pageName, state);
     saveBrowserState(pageName, state);
     localStorage.removeItem(pageName + 'PrevState');
+    setScrollPosition(pageName, getScrollStore(pageName));
 };
 
 const getPrevStateStore = (pageName) => {
@@ -72,6 +83,14 @@ const getPrevStateStore = (pageName) => {
 const savePrevState = (pageName, state) => {
     localStorage.setItem(pageName + 'PrevState', state);
 };
+
+const saveScrollStore = (pageName, scrollPos) => {
+    localStorage.setItem(pageName + 'Scroll', JSON.stringify(scrollPos));
+}
+
+const getScrollStore = (pageName) => {
+    return localStorage.getItem(pageName + 'Scroll');
+}
 
 const maximizeBrowser = (pageName, $q, content, element) => {
     const currentState = getBrowserState(pageName);
@@ -97,6 +116,10 @@ const maximizeBrowser = (pageName, $q, content, element) => {
     saveBrowserState(pageName, newState);
     saveDraggableStore(pageName, isDraggable);
 
+    const scrollY = window.scrollY;
+    setScrollPosition(pageName, scrollY);
+    saveScrollStore(pageName, content.value.scrollTop);
+
     if (element.value && newState === 'reduced') {
         element.value.className = newState;
         element.value.classList.add('draggable')
@@ -108,15 +131,14 @@ const maximizeBrowser = (pageName, $q, content, element) => {
     $q.notify({ type: 'info', message: `${pageName} Browser ${newState}` });
 };
 
-const minimizeBrowser = (pageName, $q) => {
-    const scrollY = window.scrollY;
+const minimizeBrowser = (pageName, $q, router) => {
     var newState = 'minimized';
 
     setScrollPosition(pageName, scrollY);
     setBrowserState(pageName, newState);
 
-    if (document.getElementById(pageName )) {
-        document.getElementById(pageName ).className = newState;
+    if (document.getElementById(pageName)) {
+        document.getElementById(pageName).className = newState;
     }
 
     var currentStorage = getBrowserState(pageName);
@@ -124,6 +146,9 @@ const minimizeBrowser = (pageName, $q) => {
     saveBrowserState(pageName, newState);
     setActiveMiniBrowser('');
 
+    setScrollPosition(pageName, getScrollStore(pageName));
+
+    router.push({ path: '/'});
     $q.notify({ type: 'info', message: `${pageName} Browser minimized` });
 };
 
@@ -140,12 +165,11 @@ const getActiveMiniBrowser = () => {
     return pageStates.activeMiniBrowser;
 };
 
-// Function to update the scroll position of a page
 const setScrollPosition = (page, scrollPosition) => {
     pageStates.scrollPositions[page] = scrollPosition;
 };
 
 const getScrollPosition = (page) => {
-    return pageStates.scrollPositions[page] || 0;
+    return pageStates.scrollPositions[page];
 };
-export { getDraggableStore, saveDraggableStore, loadPrevState, getPrevStateStore, savePrevState, loadBrowserState, getBrowserStateStore, saveBrowserState, setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser };
+export { setBrowserContents, getBrowserContents, saveScrollStore, getScrollStore, getDraggableStore, saveDraggableStore, loadPrevState, getPrevStateStore, savePrevState, loadBrowserState, getBrowserStateStore, saveBrowserState, setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser };

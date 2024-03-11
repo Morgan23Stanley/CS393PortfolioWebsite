@@ -88,8 +88,7 @@
           </div>
         </q-dialog>
 
-
-        <div class="icon-container">
+        <div class="icon-container" :style="{ zIndex: iconContainerZIndex }">
           <div class="desktop-align">
             <div class="icon-wrapper" ref="privateIcon" @click.stop="privateSClick" @dblclick.stop="privateDClick"
               :style="{ backgroundColor: privateBackground }">
@@ -120,7 +119,8 @@
             </div>
           </div>
         </div>
-        <router-view />
+        
+        <router-view :style="{ zIndex: routerContainerZIndex }"></router-view>
       </div>
     </q-page-container>
 

@@ -2,7 +2,7 @@ import { onMounted, onBeforeUnmount, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { watch, nextTick, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { getDraggableStore, saveDraggableStore, loadPrevState, getPrevStateStore, savePrevState, loadBrowserState, getBrowserStateStore, saveBrowserState, setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser } from '../js/pageLogic';
+import { setBrowserContents, getBrowserContents, saveScrollStore, getScrollStore, getDraggableStore, saveDraggableStore, loadPrevState, getPrevStateStore, savePrevState, loadBrowserState, getBrowserStateStore, saveBrowserState, setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser } from '../js/pageLogic';
 
 export default {
   name: 'AboutPage',
@@ -57,18 +57,17 @@ export default {
     };
 
     const minimize = () => {
-      minimizeBrowser('about', $q, aboutElement);
+      minimizeBrowser('about', $q, router);
     };
 
-    watch 
-
     onMounted(() => {
-      console.log(aboutElement.value.className = getBrowserState('about'));
-      aboutElement.value.className = getBrowserState('about')
-      window.scrollTo(0, getScrollPosition('about'));
+      aboutElement.value.className = getBrowserState('about');
 
-      const scrollListener = () => setScrollPosition('about', window.scrollY);
-      window.addEventListener('scroll', scrollListener);
+      const scrollListener = () => {
+        setScrollPosition('about', aboutContent.value.scrollTop);
+        saveScrollStore('about', aboutContent.value.scrollTop)
+      }
+      aboutContent.value.addEventListener('scroll', scrollListener);
 
       const aboutBar = document.getElementById('browser_toolbar'); // Ensure you have the correct ID for the draggable area
       aboutBar.addEventListener('mousedown', startDrag);
@@ -81,10 +80,12 @@ export default {
           aboutElement.value.classList.add('draggable');
           saveDraggableStore('about', true);
         }
+
+        aboutContent.value.scrollTo(0, getScrollStore('terminal'));
       });
 
       onBeforeUnmount(() => {
-        window.removeEventListener('scroll', scrollListener);
+        aboutContent.value.removeEventListener('scroll', scrollListener);
 
         const toolbar = aboutElement.value.querySelector('#browser_toolbar');
         if (toolbar) {

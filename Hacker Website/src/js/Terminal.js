@@ -2,7 +2,7 @@ import { onMounted, onBeforeUnmount, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { watch, nextTick, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { getDraggableStore, saveDraggableStore, loadPrevState, getPrevStateStore, savePrevState, loadBrowserState, getBrowserStateStore, saveBrowserState, setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser } from '../js/pageLogic';
+import { setBrowserContents, getBrowserContents, saveScrollStore, getScrollStore, getDraggableStore, saveDraggableStore, loadPrevState, getPrevStateStore, savePrevState, loadBrowserState, getBrowserStateStore, saveBrowserState, setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser } from '../js/pageLogic';
 
 export default {
   name: 'TerminalPage',
@@ -57,16 +57,17 @@ export default {
     };
 
     const minimize = () => {
-      minimizeBrowser('terminal', $q, terminalElement);
+      minimizeBrowser('terminal', $q, router);
     };
 
     onMounted(() => {
-      console.log(terminalElement.value.className = getBrowserState('terminal'));
-      terminalElement.value.className = getBrowserState('terminal')
-      window.scrollTo(0, getScrollPosition('terminal'));
+      terminalElement.value.className = getBrowserState('terminal');
 
-      const scrollListener = () => setScrollPosition('terminal', window.scrollY);
-      window.addEventListener('scroll', scrollListener);
+      const scrollListener = () => {
+        setScrollPosition('terminal', terminalContent.value.scrollTop);
+        saveScrollStore('terminal', terminalContent.value.scrollTop)
+      }
+      terminalContent.value.addEventListener('scroll', scrollListener);
 
       const terminalBar = document.getElementById('browser_toolbar'); // Ensure you have the correct ID for the draggable area
       terminalBar.addEventListener('mousedown', startDrag);
@@ -79,10 +80,11 @@ export default {
           terminalElement.value.classList.add('draggable');
           saveDraggableStore('terminal', true);
         }
+        terminalContent.value.scrollTo(0, getScrollStore('terminal'));
       });
 
       onBeforeUnmount(() => {
-        window.removeEventListener('scroll', scrollListener);
+        terminalContent.value.removeEventListener('scroll', scrollListener);
 
         const toolbar = terminalElement.value.querySelector('#browser_toolbar');
         if (toolbar) {
