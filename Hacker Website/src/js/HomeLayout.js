@@ -2,7 +2,7 @@ import { useQuasar } from 'quasar'
 import { QMarkdown } from '@quasar/quasar-ui-qmarkdown'
 import { ref, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { getDraggableStore, saveDraggableStore, loadPrevState, getPrevStateStore, savePrevState, loadBrowserState, getBrowserStateStore, saveBrowserState, setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser, getScrollStore, saveScrollStore } from '../js/pageLogic.js';
+import { browserOnMount, saveDimensionStore, getDimensionStore, setBrowserContents, getBrowserContents, saveScrollStore, getScrollStore, getDraggableStore, saveDraggableStore, loadPrevState, getPrevStateStore, savePrevState, loadBrowserState, getBrowserStateStore, saveBrowserState, setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser } from '../js/pageLogic.js';
 
 export default {
   setup() {
@@ -47,6 +47,71 @@ export default {
       password.value = null;
       passwordRef.value.resetValidation();
     };
+    const navigateTo = (pageName) => {
+      console.log('navigate pressed')
+      let sameRoute = true;
+      if (route.path.replace('/', '') !== pageName) {
+        if (document.getElementById(route.path.replace('/', '')) && getBrowserState(route.path.replace('/', '')) !== 'minimized') {
+          console.log('minimize current browser')
+          minimizeBrowser(route.path.replace('/', ''), $q, router);
+        }
+        sameRoute = false;
+      }
+
+      router.push({ path: '/' + pageName });
+      console.log('router pushed')
+
+      const trySetElementClass = (attemptsLeft) => {
+        nextTick(() => {
+          const element = document.getElementById(pageName);
+
+          if (element) {
+            console.log('element is available')
+
+            if (route.path !== '/') {
+              iconContainerZIndex.value = 6;
+              routerContainerZIndex.value = 7;
+            } else {
+              iconContainerZIndex.value = 6;
+              routerContainerZIndex.value = 5;
+            }
+
+            if (getBrowserState(pageName) == 'minimized') {
+              loadPrevState(pageName);
+              element.className = getBrowserState(pageName);
+              console.log('browser prev state loaded')
+            }
+
+            if (getBrowserState(pageName) == 'reduced') {
+              element.classList.add('draggable');
+              if (getDimensionStore(pageName)) {
+                var dimension = getDimensionStore(pageName);
+                let element = document.getElementById(pageName);
+                element.style.top = dimension[0] + 'px';
+                element.style.left = dimension[1] + 'px';
+              }
+              else {
+                element.style.top = '50px';
+                element.style.left = '100px';
+              }
+            }
+
+            if (sameRoute === false) {
+              const savedPosition = getScrollStore(pageName);
+              document.getElementById(pageName).querySelector('#browser_content').scrollTo(0, savedPosition);
+              console.log('browser not same route scroll restored')
+            }
+          } else if (attemptsLeft > 0) {
+            setTimeout(() => trySetElementClass(attemptsLeft - 1), 100);
+            console.log('retrying...' + attemptsLeft)
+          } else {
+            console.warn(`Element with id '${pageName}' not found after retries.`);
+          }
+        });
+      };
+
+      trySetElementClass(3);
+    };
     // watch(() => route.path, (newPath) => {
     //   nextTick(() => {
     //     const segments = newPath.split('/');
@@ -63,16 +128,16 @@ export default {
     //     }
     //   });
     // });
-    watch(() => route.path, () => {
-      console.log(route.path);
-      if (route.path !== '/') {
-        iconContainerZIndex.value = 1;
-        routerContainerZIndex.value = 1;
-      } else {
-        iconContainerZIndex.value = 1; 
-        routerContainerZIndex.value = -1;
-      }
-    });
+    // watch(() => route.path, () => {
+    //   console.log(route.path);
+    //   if (route.path !== '/') {
+    //     iconContainerZIndex.value = 6;
+    //     routerContainerZIndex.value = 7;
+    //   } else {
+    //     iconContainerZIndex.value = 6; 
+    //     routerContainerZIndex.value = 5;
+    //   }
+    // });
     onMounted(async () => {
       const response = await fetch('src/markdown/markdown.txt'); // Adjust the path as necessary
       markdownContent.value = await response.text();
@@ -89,7 +154,9 @@ export default {
       const trySetElementClass = (attemptsLeft) => {
         nextTick(() => {
           const savedPosition = getScrollStore(route.path.replace('/', ''));
-          const content = document.getElementById(route.path.replace('/', '')).querySelector('#browser_content');
+          if (route.path.replace('/', '') !== '') {
+            var content = document.getElementById(route.path.replace('/', '')).querySelector('#browser_content');
+          }
 
           if (content) {
             content.scrollTo(0, savedPosition);
@@ -98,7 +165,7 @@ export default {
             setTimeout(() => trySetElementClass(attemptsLeft - 1), 100);
             console.log('retrying...' + attemptsLeft)
           } else {
-            console.warn(`Element with id '${pageName}' not found after retries.`);
+            console.warn(`Element with id '${route.path.replace('/', '')}' not found after retries.`);
           }
         });
       };
@@ -118,6 +185,7 @@ export default {
     return {
       onSubmit,
       onReset,
+      navigateTo,
       prompt,
       password,
       passwordRef,
@@ -175,56 +243,6 @@ export default {
       if (privateIcon && !privateIcon.contains(event.target)) {
         this.privateBackground = 'transparent';
       }
-    },
-    navigateTo(pageName) {
-      console.log('navigate pressed')
-      let sameRoute = true;
-      if (this.$route.path.replace('/', '') !== pageName) {
-        if (document.getElementById(this.$route.path.replace('/', '')) && getBrowserState(this.$route.path.replace('/', '')) !== 'minimized') {
-          console.log('minimize current browser')
-          minimizeBrowser(this.$route.path.replace('/', ''), this.$q, this.$router);
-        }
-        sameRoute = false;
-      }
-
-      this.$router.push({ path: '/' + pageName });
-      console.log('router pushed')
-
-      const trySetElementClass = (attemptsLeft) => {
-        nextTick(() => {
-          console.log('homelayout next tick')
-          const element = document.getElementById(pageName);
-
-          if (element) {
-            console.log('element is available')
-            console.log('1 ' + getBrowserState(pageName));
-            // Element found, perform your operations
-            if (getBrowserState(pageName) == 'minimized') {
-              loadPrevState(pageName);
-              element.className = getBrowserState(pageName);
-              console.log('browser prev state loaded')
-            }
-            
-            if (getBrowserState(pageName) == 'reduced') {
-              element.classList.add('draggable');
-              console.log('browser draggable')
-            }
-
-            if (sameRoute === false) {
-              const savedPosition = getScrollStore(pageName);
-              document.getElementById(pageName).querySelector('#browser_content').scrollTo(0, savedPosition);
-              console.log('browser not same route scroll restored')
-            }
-          } else if (attemptsLeft > 0) {
-            setTimeout(() => trySetElementClass(attemptsLeft - 1), 100);
-            console.log('retrying...' + attemptsLeft)
-          } else {
-            console.warn(`Element with id '${pageName}' not found after retries.`);
-          }
-        });
-      };
-
-      trySetElementClass(3);
     },
   },
 };

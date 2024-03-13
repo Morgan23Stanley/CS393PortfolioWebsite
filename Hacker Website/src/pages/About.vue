@@ -30,6 +30,9 @@ export default About
 
 
 <style scoped>
+#about {
+  pointer-events: auto;
+}
 #about.default {
   overflow: hidden;
   display: block;

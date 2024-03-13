@@ -20,7 +20,7 @@ const setBrowserContents = (pageName, content) => {
 }
 
 const getBrowserContents = (pageName) => {
-    return  pageStates.browserContents[pageName];
+    return pageStates.browserContents[pageName];
 }
 
 const setCurrentPage = (pageName) => {
@@ -92,21 +92,49 @@ const getScrollStore = (pageName) => {
     return localStorage.getItem(pageName + 'Scroll');
 }
 
+const saveDimensionStore = (pageName) => {
+    const desktop = document.getElementById('desktop');
+    const browser = document.getElementById(pageName);
+    if (desktop && browser) {
+        const desktopRect = desktop.getBoundingClientRect();
+        const browserRect = browser.getBoundingClientRect();
+
+        // Calculate positions relative to the desktop
+        const topRelative = browserRect.top - desktopRect.top;
+        const leftRelative = browserRect.left - desktopRect.left;
+        const rightRelative = browserRect.right - desktopRect.right;
+        const bottomRelative = browserRect.bottom - desktopRect.bottom;
+
+        localStorage.setItem(pageName + 'Dimension', JSON.stringify([topRelative, leftRelative, rightRelative, bottomRelative, browserRect.width, browserRect.height]));
+    }
+}
+
+const getDimensionStore = (pageName) => {
+    return JSON.parse(localStorage.getItem(pageName + 'Dimension'));
+}
+
 const maximizeBrowser = (pageName, $q, content, element) => {
     const currentState = getBrowserState(pageName);
     var newState;
     var isDraggable;
 
     if (currentState === 'maximized') {
-        element.value.style.left = '100px';
-        element.value.style.top = '50px';
+        if (getDimensionStore(pageName)) {
+            var dimension = getDimensionStore(pageName);
+            element.value.style.top = dimension[0] + 'px';
+            element.value.style.left = dimension[1] + 'px';
+        }
+        else {
+            element.value.style.top = '50px';
+            element.value.style.left = '100px';
+        }
         newState = 'reduced';
         isDraggable = true;
     } else if (currentState === 'reduced') {
         newState = 'default';
+        isDraggable = false;
         element.value.style.left = '0';
         element.value.style.top = '0';
-        isDraggable = false;
     } else {
         newState = 'maximized';
         isDraggable = false;
@@ -132,6 +160,9 @@ const maximizeBrowser = (pageName, $q, content, element) => {
 };
 
 const minimizeBrowser = (pageName, $q, router) => {
+    if (getBrowserState(pageName) === 'reduced') {
+        saveDimensionStore(pageName);
+    }
     var newState = 'minimized';
 
     setScrollPosition(pageName, scrollY);
@@ -148,7 +179,7 @@ const minimizeBrowser = (pageName, $q, router) => {
 
     setScrollPosition(pageName, getScrollStore(pageName));
 
-    router.push({ path: '/'});
+    router.push({ path: '/' });
     $q.notify({ type: 'info', message: `${pageName} Browser minimized` });
 };
 
@@ -172,4 +203,42 @@ const setScrollPosition = (page, scrollPosition) => {
 const getScrollPosition = (page) => {
     return pageStates.scrollPositions[page];
 };
-export { setBrowserContents, getBrowserContents, saveScrollStore, getScrollStore, getDraggableStore, saveDraggableStore, loadPrevState, getPrevStateStore, savePrevState, loadBrowserState, getBrowserStateStore, saveBrowserState, setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser };
+
+const browserOnMount = (pageName, element, content) => {
+    const trySetElementClass = (attemptsLeft) => {
+        nextTick(() => {
+            var dimension;
+            if (getDimensionStore(pageName)) {
+                dimension = getDimensionStore(pageName);
+            }
+            if (element) {
+                element.value.className = getBrowserState(pageName);
+
+                if (getBrowserStateStore(pageName) === 'reduced' && (getDraggableStore(pageName) === 'true' || getDraggableStore(pageName) === '')) {
+                    element.value.classList.add('draggable');
+                    saveDraggableStore(pageName, true);
+
+                    if (dimension) {
+                        element.value.style.top = dimension[0] + 'px';
+                        element.value.style.left = dimension[1] + 'px';
+                    }
+                }
+                console.log(element.value.style.top, element.value.style.left, element.value.style.width, element.value.style.height);
+                // calculateArea(pageName);
+                content.value.scrollTo(0, getScrollStore(pageName));
+            } else if (attemptsLeft > 0) {
+                setTimeout(() => trySetElementClass(attemptsLeft - 1), 100);
+                console.log('retrying...' + attemptsLeft)
+            } else {
+                console.warn(`Element with id '${pageName}' not found after retries.`);
+                return false;
+            }
+        });
+    };
+
+    trySetElementClass(3);
+
+    return true;
+};
+
+export { browserOnMount, saveDimensionStore, getDimensionStore, setBrowserContents, getBrowserContents, saveScrollStore, getScrollStore, getDraggableStore, saveDraggableStore, loadPrevState, getPrevStateStore, savePrevState, loadBrowserState, getBrowserStateStore, saveBrowserState, setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser };

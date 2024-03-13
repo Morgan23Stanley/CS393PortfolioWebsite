@@ -120,7 +120,7 @@
           </div>
         </div>
         
-        <router-view :style="{ zIndex: routerContainerZIndex }"></router-view>
+        <router-view id='router' :style="{ zIndex: routerContainerZIndex }"></router-view>
       </div>
     </q-page-container>
 
@@ -149,7 +149,7 @@ export default HomeLayout;
   align-items: center;
   justify-content: center;
   text-align: center;
-  z-index: 5;
+  z-index: 1;
 }
 
 .custom-toolbar {
@@ -308,6 +308,10 @@ export default HomeLayout;
 
 .file {
   color: white;
+}
+
+#router {
+  pointer-events: none;
 }
 
 </style>

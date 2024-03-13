@@ -2,7 +2,7 @@ import { onMounted, onBeforeUnmount, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { watch, nextTick, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { setBrowserContents, getBrowserContents, saveScrollStore, getScrollStore, getDraggableStore, saveDraggableStore, loadPrevState, getPrevStateStore, savePrevState, loadBrowserState, getBrowserStateStore, saveBrowserState, setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser } from '../js/pageLogic';
+import { browserOnMount, saveDimensionStore, getDimensionStore, setBrowserContents, getBrowserContents, saveScrollStore, getScrollStore, getDraggableStore, saveDraggableStore, loadPrevState, getPrevStateStore, savePrevState, loadBrowserState, getBrowserStateStore, saveBrowserState, setCurrentPage, getCurrentPage, setActiveMiniBrowser, setScrollPosition, getActiveMiniBrowser, getScrollPosition, setBrowserState, getBrowserState, setPrevStates, getPrevStates, minimizeBrowser, maximizeBrowser, closeBrowser } from '../js/pageLogic';
 
 export default {
   name: 'TerminalPage',
@@ -39,6 +39,8 @@ export default {
 
         terminalElement.value.style.left = `${newX}px`;
         terminalElement.value.style.top = `${newY}px`;
+
+        saveDimensionStore('terminal');
       }
     };
 
@@ -61,38 +63,32 @@ export default {
     };
 
     onMounted(() => {
-      terminalElement.value.className = getBrowserState('terminal');
+      var done = browserOnMount('terminal', terminalElement, terminalContent, startDrag, doDrag, stopDrag);
 
-      const scrollListener = () => {
-        setScrollPosition('terminal', terminalContent.value.scrollTop);
-        saveScrollStore('terminal', terminalContent.value.scrollTop)
-      }
-      terminalContent.value.addEventListener('scroll', scrollListener);
-
-      const terminalBar = document.getElementById('browser_toolbar'); // Ensure you have the correct ID for the draggable area
-      terminalBar.addEventListener('mousedown', startDrag);
-      document.addEventListener('mousemove', doDrag);
-      document.addEventListener('mouseup', stopDrag);
-
-      nextTick(() => {
-        console.log('terminal next tick');
-        if (getBrowserStateStore('terminal') === 'reduced' && (getDraggableStore('terminal') === 'true' || getDraggableStore('terminal') === '')) {
-          terminalElement.value.classList.add('draggable');
-          saveDraggableStore('terminal', true);
+      let scrollListener = null;
+      let cleanupResize = null;
+      if (done) {
+        scrollListener = () => {
+          setScrollPosition('terminal', terminalContent.value.scrollTop);
+          saveScrollStore('terminal', terminalContent.value.scrollTop)
         }
-        terminalContent.value.scrollTo(0, getScrollStore('terminal'));
-      });
+        terminalContent.value.addEventListener('scroll', scrollListener);
 
+        const terminalBar = document.getElementById('browser_toolbar'); // Ensure you have the correct ID for the draggable area
+        terminalBar.addEventListener('mousedown', startDrag);
+        document.addEventListener('mousemove', doDrag);
+        document.addEventListener('mouseup', stopDrag);
+      }
       onBeforeUnmount(() => {
         terminalContent.value.removeEventListener('scroll', scrollListener);
-
+  
         const toolbar = terminalElement.value.querySelector('#browser_toolbar');
         if (toolbar) {
           toolbar.removeEventListener('mousedown', startDrag);
         }
-
         document.removeEventListener('mousemove', doDrag);
         document.removeEventListener('mouseup', stopDrag);
+
       });
     });
 

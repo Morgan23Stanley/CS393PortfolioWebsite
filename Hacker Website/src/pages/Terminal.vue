@@ -30,6 +30,10 @@ export default Terminal
 
 
 <style scoped>
+#terminal {
+  pointer-events: auto;
+}
+
 #terminal.default {
   overflow: hidden;
   display: block;
