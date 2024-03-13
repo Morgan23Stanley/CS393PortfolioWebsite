@@ -9,7 +9,7 @@
  4. Open up the terminal in VS Code
  5. Do cd '.\Hacker Website\' if you are not in the path already
  6. npx quasar dev
- 7. When on the browser in the url type /home so it should look like 'http://localhost:9000/#/home'
+ 7. When on the browser it should look like 'http://localhost:9000/#/home'
 
 Here is a screenshot of what the website should look like when u do have it working:
 ![image](https://github.com/Morgan23Stanley/CS393PortfolioWebsite/assets/144958516/a466d284-17c5-4dea-8455-8c9cff393145)
